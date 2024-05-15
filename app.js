@@ -1,6 +1,7 @@
 // initial setup
 const config = require('./utils/config')
 const express = require('express')
+require('express-async-errors') // error handler for async/await
 const app = express()
 const cors = require('cors')
 const blogsRouter = require('./routes/blogs')
@@ -12,7 +13,6 @@ const mongoose = require('mongoose')
 mongoose.set('strictQuery', false)
 
 const MONGODB_URI = config.MONGODB_URI
-const PORT = config.PORT
 
 mongoose.connect(MONGODB_URI)
         .then(() => {

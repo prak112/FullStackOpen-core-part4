@@ -4,8 +4,9 @@
   "description": "Exercises to learn Testing and User administration in Express",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "test": "node --test",
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "test": "cross-env NODE_ENV=test node --test",
     "lint": "eslint ."
   },
   "repository": {
@@ -27,12 +28,16 @@
   "homepage": "https://github.com/prak112/FullStackOpen-core-part4#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
+    "lodash": "^4.17.21",
     "mongoose": "^8.3.4",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "supertest": "^7.0.0"
   }
 }
