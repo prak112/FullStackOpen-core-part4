@@ -8,6 +8,8 @@ router.get('/:id', blogsController.getBlogById)
 
 router.post('/', blogsController.addBlog)
 
+router.put('/:id', blogsController.updateBlog)
+
 router.delete('/:id', blogsController.removeBlog)
 
 module.exports = router

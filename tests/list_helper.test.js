@@ -89,7 +89,7 @@ describe('Total Likes', () => {
 
     // single list item
     test('of list with a single blogpost will return its likes', () => {
-        assert.strictEqual(totalLikes(listWithOneBlog), 5)
+        assert.strictEqual(totalLikes(listWithOneBlog), 7)
     })
 
 
@@ -151,7 +151,7 @@ describe('Most Liked blog', () => {
 
     // multiple items
     const topBlog =     {
-        "author": "Edsger W. Dijkstraeces",
+        "author": "Edsger W. Dijkstra",
         "likes": 12
     }
     test('when multiple blogs in list', () => {

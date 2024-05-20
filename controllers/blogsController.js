@@ -3,6 +3,7 @@ const { request, response } = require('express')
 require('express-async-errors')
 const Blog = require('../models/blog')
 
+// GET
 exports.getAllBlogs = async (request, response, next) => {
     try {
         const blogs = await Blog.find({})
@@ -27,6 +28,7 @@ exports.getBlogById = async (request, response, next) => {
     }
 }
 
+// POST
 exports.addBlog = async (request, response, next) => {
     try {
         const blog = new Blog(request.body)
@@ -38,6 +40,21 @@ exports.addBlog = async (request, response, next) => {
     }
 }
 
+// UPDATE
+exports.updateBlog = async(request, response, next) => {
+    try {
+        const { title, author, url, likes } = request.body
+        const updatedBlog = await Blog.findByIdAndUpdate(request.params.id,
+            {title, author, url, likes},
+            {new: true, runValidators: true, context: 'query'}
+        )
+        response.json(updatedBlog)
+    } catch (error) {
+        next(error)
+    }
+}
+
+// DELETE
 exports.removeBlog = async (request, response, next) => {
     try {
         await Blog.findByIdAndDelete(request.params.id)
