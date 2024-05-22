@@ -1,8 +1,17 @@
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
-    username: String,
-    name: String,
+    username: {
+        type: String,
+        minLength: 3,
+        required: true,
+        unique: true,
+    },  // ValidationError response code 400
+    name: {
+        type: String,
+        minLength: 3,
+        required: true
+    }, // ValidationError response code 400
     passwordHash: String,
     blogs: [
         {

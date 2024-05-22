@@ -22,6 +22,9 @@ const errorHandler = (error, request, response, next) => {
     else if(error.name === 'ValidationError'){
         response.status(400).send({ error: error.message })
     }
+    else if(error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')){
+        response.status(400).json({ error: 'Expected `username` to be unique' })
+    }
     next(error)
 }
 
