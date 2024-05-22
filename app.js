@@ -4,7 +4,8 @@ const express = require('express')
 require('express-async-errors') // error handler for async/await
 const app = express()
 const cors = require('cors')
-const blogsRouter = require('./routes/blogs')
+const blogsRouter = require('./routes/blogsRouter')
+const usersRouter = require('./routes/usersRouter')
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
@@ -29,8 +30,9 @@ if (process.env.NODE_ENV !== 'test'){
     app.use(middleware.requestLogger)
 }
 
-// redirect HTTP methods to router
+// redirect HTTP requests to routers
 app.use('/api/blogs', blogsRouter)
+app.use('/api/users', usersRouter)
 
 // Error Handlers
 app.use(middleware.unknownEndpoint)

@@ -12,4 +12,5 @@ router.put('/:id', blogsController.updateBlog)
 
 router.delete('/:id', blogsController.removeBlog)
 
+// export to app
 module.exports = router
