@@ -80,7 +80,7 @@ describe('When DB has one initial user', () => {
         const result = await userAPI
                                 .post('/api/users')
                                 .send(invalidPassword)
-                                .expect(500)
+                                .expect(401)
                                 .expect('Content-Type', /application\/json/)
         
         // confirm registration failure

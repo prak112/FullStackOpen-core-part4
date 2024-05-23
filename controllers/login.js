@@ -29,8 +29,13 @@ loginRouter.post('/', async(request, response) => {
         username: user.username,
         id: user._id
     }
-    const token = jwt.sign(userToAuthenticate, process.env.SECRET)
-    return response.status(200)
+    // limit token validity to 15 minutes
+    const token = jwt.sign(
+                        userToAuthenticate, 
+                        process.env.SECRET, 
+                        {expiresIn: 15 * 60})
+    return response
+                .status(200)
                 .send({ token, username: user.username, name: user.name })
 })
 

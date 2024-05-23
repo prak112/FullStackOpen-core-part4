@@ -26,7 +26,13 @@ const errorHandler = (error, request, response, next) => {
         response.status(400).json({ error: 'Expected `username` to be unique' })
     }
     else if(error.message.includes('ValidationError: Password must not be empty/Password must be atleast 3 characters long')){
-        response.status(500).json({ error: error.message })
+        response.status(401).json({ error: error.message })
+    }
+    else if(error.name === 'JsonWebTokenError') {
+        response.status(401).json({ error: 'Invalid Token. User authentication failed.' })
+    }
+    else if(error.name === 'TokenExpiredError') {
+        response.status(401).json({ error: 'Token expired. Login again.' })
     }
     next(error)
 }
