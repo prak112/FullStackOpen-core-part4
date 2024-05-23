@@ -81,12 +81,12 @@ describe('When DB has one initial user', () => {
                                 .post('/api/users')
                                 .send(invalidPassword)
                                 .expect(500)
-                                .expect('Content-Type', /text\/html/)
+                                .expect('Content-Type', /application\/json/)
         
         // confirm registration failure
         const usersAfterRegistration = await helper.usersInDB()
         assert.strictEqual(usersAfterRegistration.length, usersBeforeRegistration.length)
 
-        // assert(result.error.message.includes('ValidationError'))
+        assert(result.body.error.includes('ValidationError: Password must not be empty/Password must be atleast 3 characters long'))
     })
 })

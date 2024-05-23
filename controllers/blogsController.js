@@ -2,15 +2,19 @@
 const { request, response } = require('express')
 require('express-async-errors')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 // GET
 exports.getAllBlogs = async (request, response, next) => {
     try {
-        const blogs = await Blog.find({})
+        const user = await User.findOne()
+        const blogs = await Blog
+                        .find({ user: user.id })
+                        .populate('user', {username: 1, name: 1, id: 1})
         response.json(blogs)
     } 
-    catch(error) {
-        next(error)
+    catch (error) {
+        next(error)    
     }
 }
 
@@ -31,9 +35,16 @@ exports.getBlogById = async (request, response, next) => {
 // POST
 exports.addBlog = async (request, response, next) => {
     try {
-        const blog = new Blog(request.body)
-        const result = await blog.save()
-        response.status(201).json(result)
+        const user = await User.findOne()
+        const blog = new Blog({
+            ...request.body,
+            user: user.id
+        })
+        const addedBlog = await blog.save()
+        user.blogs = user.blogs.concat(addedBlog._id)
+        await user.save()
+        
+        response.status(201).json(addedBlog)
     }
     catch(error) {
         next(error)

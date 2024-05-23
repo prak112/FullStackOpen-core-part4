@@ -25,6 +25,9 @@ const errorHandler = (error, request, response, next) => {
     else if(error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')){
         response.status(400).json({ error: 'Expected `username` to be unique' })
     }
+    else if(error.message.includes('ValidationError: Password must not be empty/Password must be atleast 3 characters long')){
+        response.status(500).json({ error: error.message })
+    }
     next(error)
 }
 
