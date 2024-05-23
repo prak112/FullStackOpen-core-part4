@@ -6,6 +6,7 @@ const app = express()
 const cors = require('cors')
 const blogsRouter = require('./routes/blogsRouter')
 const usersRouter = require('./routes/usersRouter')
+const loginRouter = require('./controllers/login')
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
@@ -31,6 +32,7 @@ if (process.env.NODE_ENV !== 'test'){
 }
 
 // redirect HTTP requests to routers
+app.use('/api/login', loginRouter)
 app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
 
