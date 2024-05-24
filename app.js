@@ -4,10 +4,11 @@ const express = require('express')
 require('express-async-errors') // error handler for async/await
 const app = express()
 const cors = require('cors')
+const middleware = require('./utils/middleware')
+app.use(middleware.tokenExtractor)
 const blogsRouter = require('./routes/blogsRouter')
 const usersRouter = require('./routes/usersRouter')
 const loginRouter = require('./controllers/login')
-const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
 // connect DB

@@ -5,21 +5,6 @@ require('express-async-errors')
 const jwt = require('jsonwebtoken')
 const Blog = require('../models/blog')
 const User = require('../models/user')
-const user = require('../models/user')
-
-// use auth-scheme 'Bearer' for token
-/**
- * request Header => Authorization => <auth-scheme> <auth-parameters>
- */
-const getUserToken = (request) => {
-    const authHeader = request.get('authorization')
-    if(authHeader && authHeader.startsWith('Bearer ')){
-        const token = authHeader.split(' ')[1]
-        return token
-    }
-    return null
-}
-
 
 // GET
 exports.getAllBlogs = async (request, response, next) => {
@@ -55,12 +40,12 @@ exports.addBlog = async (request, response, next) => {
         const body = request.body
         // authenticate user token
         /*
-         * use getUserToken
+         * from middleware.tokenExtractor use request.token
          * use jwt.verify to authenticate user
          * if invalid, return 401 status and message
          * if valid, get user from User collection   
         */
-        const decodedToken = jwt.verify(getUserToken(request), process.env.SECRET)
+        const decodedToken = jwt.verify(request.token, process.env.SECRET)
         if(!decodedToken){
             return response.status(401).json({ error: 'Invalid Token. User authentication failed.' })
         }

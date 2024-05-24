@@ -8,9 +8,24 @@ const requestLogger = morgan('dev')
 // morgan.token('body', (req, res) => JSON.stringify(req.body) );
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
+// Token extraction
+// <auth-scheme> 'Bearer' for token
+/*
+ * request Header => Authorization => <auth-scheme> <auth-parameters>
+*/
+const tokenExtractor = (request, response, next) => {
+    const authHeader = request.get('authorization')
+    if(authHeader && authHeader.startsWith('Bearer ')){
+        request.token = authHeader.split(' ')[1]
+    }
+    next()
+}
+
+
 // Endpoint handler
-const unknownEndpoint = (request, response) => {
+const unknownEndpoint = (request, response, next) => {
     response.status(404).send({error: 'Unkown Endpoint'})
+    next()
 }
 
 // Error Handler - ALWAYS loaded last in app.js
@@ -37,5 +52,6 @@ const errorHandler = (error, request, response, next) => {
     next(error)
 }
 
+
 // export to app.js
-module.exports = { requestLogger, unknownEndpoint, errorHandler }
+module.exports = { requestLogger, tokenExtractor, unknownEndpoint, errorHandler }
