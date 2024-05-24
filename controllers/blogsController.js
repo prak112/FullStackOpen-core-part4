@@ -58,6 +58,7 @@ exports.addBlog = async (request, response, next) => {
 
         user.blogs = user.blogs.concat(addedBlog._id)
         await user.save()
+        console.log(`Blog - '${addedBlog.title}' added by User - '${user.username}'`)
 
         response.status(201).json(addedBlog)
     }
@@ -82,8 +83,29 @@ exports.updateBlog = async(request, response, next) => {
 
 // DELETE
 exports.removeBlog = async (request, response, next) => {
+    /** user can only delete their blogs
+     * retrieve user id from the existing blog
+     * retrieve user id of client requesting delete 
+        * decode token from request.token
+        * retrieve user id from decodedToken  
+        * verify userIdFromBlog === userIdFromToken ?
+     * if invalid, return status 401 and error message
+     * if valid, delete blog and return status 204 
+    */
     try {
-        await Blog.findByIdAndDelete(request.params.id)
+        const blogToDelete = await Blog.findById(request.params.id)
+        const decodedToken = jwt.verify(request.token, process.env.SECRET)
+        if(!decodedToken){
+            response.status(401).json({ error: 'Invalid Token. User Authentication failed.' })
+        }
+        const userIdFromToken = decodedToken.id
+        const userIdFromBlog = blogToDelete.user.id
+        if(userIdFromToken !== userIdFromBlog){
+            response.status(401).json({ error: 'Invalid request. User not authorized.'})
+        }
+        await Blog.findByIdAndDelete(blogToDelete.id)
+        console.log(`Blog - '${blogToDelete.title}' deleted by User - '${decodedToken.username}'`)
+
         response.status(204).end()
     } catch (error) {
         next(error)
