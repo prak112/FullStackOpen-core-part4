@@ -9,11 +9,10 @@ const User = require('../models/user')
 // GET
 exports.getAllBlogs = async (request, response, next) => {
     try {
-        const user = await User.findOne()
-        const blogs = await Blog
-                        .find({ user: user.id })
-                        .populate('user', {username: 1, name: 1, id: 1})
-        response.json(blogs)
+        const allBlogs = await Blog
+                            .find({})
+                            .populate('user', {username: 1, name: 1, id: 1})
+        response.json(allBlogs)
     } 
     catch (error) {
         next(error)    
@@ -22,7 +21,9 @@ exports.getAllBlogs = async (request, response, next) => {
 
 exports.getBlogById = async (request, response, next) => {
     try {
-        const blog = await Blog.findById(request.params.id)
+        const blog = await Blog
+                        .findById(request.params.id)
+                        .populate('user', {username: 1, name: 1, id: 1})
         if(blog){
             response.json(blog)
         }
@@ -38,18 +39,7 @@ exports.getBlogById = async (request, response, next) => {
 exports.addBlog = async (request, response, next) => {
     try {
         const body = request.body
-        // authenticate user token
-        /*
-         * from middleware.tokenExtractor use request.token
-         * use jwt.verify to authenticate user
-         * if invalid, return 401 status and message
-         * if valid, get user from User collection   
-        */
-        const decodedToken = jwt.verify(request.token, process.env.SECRET)
-        if(!decodedToken){
-            return response.status(401).json({ error: 'Invalid Token. User authentication failed.' })
-        }
-        const user = await User.findById(decodedToken.id)
+        const user = request.user
         const blog = new Blog({
                             ...body,
                             user: user.id
@@ -58,7 +48,7 @@ exports.addBlog = async (request, response, next) => {
 
         user.blogs = user.blogs.concat(addedBlog._id)
         await user.save()
-        console.log(`Blog - '${addedBlog.title}' added by User - '${user.username}'`)
+        console.log(`Blog - '${addedBlog.title}' added by User - '${user.name}'`)
 
         response.status(201).json(addedBlog)
     }
@@ -83,30 +73,22 @@ exports.updateBlog = async(request, response, next) => {
 
 // DELETE
 exports.removeBlog = async (request, response, next) => {
-    /** user can only delete their blogs
-     * retrieve user id from the existing blog
-     * retrieve user id of client requesting delete 
-        * decode token from request.token
-        * retrieve user id from decodedToken  
-        * verify userIdFromBlog === userIdFromToken ?
-     * if invalid, return status 401 and error message
-     * if valid, delete blog and return status 204 
-    */
     try {
         const blogToDelete = await Blog.findById(request.params.id)
-        const decodedToken = jwt.verify(request.token, process.env.SECRET)
-        if(!decodedToken){
-            response.status(401).json({ error: 'Invalid Token. User Authentication failed.' })
-        }
-        const userIdFromToken = decodedToken.id
+        // const decodedToken = jwt.verify(request.token, process.env.SECRET)
+        // if(!decodedToken){
+        //     response.status(401).json({ error: 'Invalid Token. User Authentication failed.' })
+        // }
+        const userIdFromToken = request.user.id
         const userIdFromBlog = blogToDelete.user.id
         if(userIdFromToken !== userIdFromBlog){
             response.status(401).json({ error: 'Invalid request. User not authorized.'})
         }
-        await Blog.findByIdAndDelete(blogToDelete.id)
-        console.log(`Blog - '${blogToDelete.title}' deleted by User - '${decodedToken.username}'`)
-
-        response.status(204).end()
+        else {
+            await Blog.findByIdAndDelete(blogToDelete.id)
+            console.log(`Blog - '${blogToDelete.title}' deleted by User - '${request.user.name}'`)    
+            response.status(204).end()
+        }
     } catch (error) {
         next(error)
     }

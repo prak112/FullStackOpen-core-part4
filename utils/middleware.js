@@ -1,15 +1,21 @@
-const logger = require('./logger')
+// imports - user authentication
+require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const User = require('../models/user')
 
 // load Middleware (VERY PARTICULAR ORDER)
+const logger = require('./logger')
 const morgan = require('morgan')
 const requestLogger = morgan('dev')
 
 // ONLY for development purposes - POST method
-// morgan.token('body', (req, res) => JSON.stringify(req.body) );
-// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
+/* 
+* morgan.token('body', (req, res) => JSON.stringify(req.body) );
+* app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
+*/
 
-// Token extraction
-// <auth-scheme> 'Bearer' for token
+
+// Token extraction - <auth-scheme> 'Bearer' for token
 /*
  * request Header => Authorization => <auth-scheme> <auth-parameters>
 */
@@ -21,6 +27,21 @@ const tokenExtractor = (request, response, next) => {
     next()
 }
 
+// authenticate user token
+/** Only owner can POST/DELETE their blogs
+    * from middleware.tokenExtractor use request.token
+    * use jwt.verify to authenticate user
+    * if invalid, return 401 status and message
+    * if valid, get user from User collection   
+*/
+const userExtractor = async (request, response, next) => {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    if(!decodedToken){
+        return response.status(401).json({ error: 'Invalid Token. User authentication failed.' })
+    }
+    request.user = await User.findById(decodedToken.id)
+    next()
+}
 
 // Endpoint handler
 const unknownEndpoint = (request, response, next) => {
@@ -54,4 +75,4 @@ const errorHandler = (error, request, response, next) => {
 
 
 // export to app.js
-module.exports = { requestLogger, tokenExtractor, unknownEndpoint, errorHandler }
+module.exports = { requestLogger, tokenExtractor, userExtractor, unknownEndpoint, errorHandler }
