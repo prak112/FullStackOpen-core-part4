@@ -17,4 +17,4 @@ Exercises from Part 4 of 7 (Core) Full Stack Development Open University course 
 | --- | --- |
 | 4.1 to 4.7 | Blog app with MVC architecture, [Helper functions](/utils/list_helper.js) and [Unit Tests](/tests/list_helper.test.js) |
 | 4.8 to 4.14 | [Backend API testing using `supertest` and `async/await`](/tests/blog_api.test.js) |
-| 4.15 to 4.23 | [User administration](/controllers/login.js), [User authentication with JWT for POST, DELETE requests](/utils/middleware.js) and [Automation tests for POST authentication](/tests/blog_api.test.js) |
+| 4.15 to 4.23 | [User administration](/controllers/login.js), [User authentication with JWT for POST, DELETE requests](/utils/middleware.js) and [Automated Tests for POST authentication](/tests/blog_api.test.js) |
