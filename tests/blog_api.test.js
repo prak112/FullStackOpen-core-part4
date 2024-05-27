@@ -6,12 +6,16 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 const helper = require('./test_helper')
+const { log } = require('node:console')
+const { request } = require('node:http')
+const blog = require('../models/blog')
+const { token } = require('morgan')
 
 // define superagent object
 const blogAPI = supertest(app)
 
 // initialize data in testDB
-const totalBlogs = helper.initialBlogs.length
+const totalInitialBlogs = helper.initialBlogs.length
 
 describe('When DB data is initialized', () => {
     beforeEach(async() => {
@@ -31,13 +35,35 @@ describe('When DB data is initialized', () => {
         
         test('Total blogs as 6', async() => {
             const response = await blogAPI.get('/api/blogs')
-            assert.strictEqual(response.body.length, totalBlogs)
+            assert.strictEqual(response.body.length, totalInitialBlogs)
         })
     })
-    
-    
-    // test POST request
+
+
     describe('HTTP POST method', () => {
+        let token = null;
+
+        beforeEach(async() => {
+            const newUser = {
+                "username": 'tester1',
+                "name": "test user1",
+                "password": "yabadabaDO!"
+            }
+            // register user
+            await blogAPI
+                    .post('/api/users')
+                    .send(newUser)
+            // login user
+            const result = await blogAPI
+                                .post('/api/login')
+                                .send({
+                                        "username": newUser.username,
+                                        "password": newUser.password
+                                    })                    
+            // extract token and user info 
+            token = result.body.token
+        })
+
         test('adds blog with all properties to list', async() => {
             const newBlog = {
                 title: 'Navigating Open Source: A Guide to Effective Community Engagement',
@@ -45,16 +71,16 @@ describe('When DB data is initialized', () => {
                 url: 'https://dev.to/buildwebcrumbs/navigating-open-source-a-guide-to-effective-community-engagement-5gb9',
                 likes: 17
             }
-    
             await blogAPI
                 .post('/api/blogs')
                 .send(newBlog)
+                .set({Authorization: `Bearer ${token}`})
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
             
             // confirm total blogs
             const response = await blogAPI.get('/api/blogs')
-            assert.strictEqual(response.body.length, totalBlogs + 1)
+            assert.strictEqual(response.body.length, totalInitialBlogs + 1)
     
             // confirm blog title
             const titles = response.body.map(blog => blog.title)
@@ -62,7 +88,7 @@ describe('When DB data is initialized', () => {
         })
     
         test('does not add blog without Title to list', async() => {
-            const blogWithoutUrl = {
+            const blogWithoutTitle = {
                 title: '',
                 author: 'Idk',
                 url: 'https://thisdoesnotexist.nowhere.com',
@@ -70,12 +96,13 @@ describe('When DB data is initialized', () => {
             }
             await blogAPI
                     .post('/api/blogs')
-                    .send(blogWithoutUrl)
+                    .send(blogWithoutTitle)
+                    .set({Authorization: `Bearer ${token}`})
                     .expect(400)
     
             // confirm total blogs are unchanged
             const response = await blogAPI.get('/api/blogs')
-            assert.strictEqual(response.body.length, totalBlogs)
+            assert.strictEqual(response.body.length, totalInitialBlogs)
         })
     
         test('does not add blog without URL to list', async() => {
@@ -88,13 +115,15 @@ describe('When DB data is initialized', () => {
             await blogAPI
                     .post('/api/blogs')
                     .send(blogWithoutUrl)
-                         .expect(400)
+                    .set({Authorization: `Bearer ${token}`})
+                    .expect(400)
     
             // confirm total blogs are unchanged
             const response = await blogAPI.get('/api/blogs')
-            assert.strictEqual(response.body.length, totalBlogs)
+            assert.strictEqual(response.body.length, totalInitialBlogs)
         })
     
+        
         test('adds blog without Likes to list', async() => {
             const blogWithoutLikes = {
                 title: '9 Important React Hooks',
@@ -104,12 +133,30 @@ describe('When DB data is initialized', () => {
             await blogAPI
                     .post('/api/blogs')
                     .send(blogWithoutLikes)
+                    .set({Authorization: `Bearer ${token}`})
                     .expect(201)
             
             // confirm total blogs changed
             const response = await blogAPI.get('/api/blogs')
             const blogsInDb = await helper.blogsInDB()
             assert.strictEqual(response.body.length, blogsInDb.length)
+        })
+
+        test('without access token fails due to Unauthorized access', async() => {
+            const someBlog = {
+                title: "Random title",
+                author: "some author",
+                url: "https://something.blog.com"
+            }
+            await blogAPI
+                    .post('/api/blogs')
+                    .send(someBlog)
+                    .expect(401)
+            
+            // confirm blogs unchanged
+            const response = await blogAPI.get('/api/blogs')
+            const blogsInDb = await helper.blogsInDB().length
+            assert.strictEqual(response.body.length, totalInitialBlogs)
         })
     })
     
@@ -120,8 +167,9 @@ describe('When DB data is initialized', () => {
             const blogsBeforeDelete = await helper.blogsInDB()
             const blogToDelete = blogsBeforeDelete[0]
     
-            await blogAPI.delete(`/api/blogs/${blogToDelete.id}`)
-                         .expect(204)
+            await blogAPI
+                    .delete(`/api/blogs/${blogToDelete.id}`)
+                    .expect(204)
                     
             // confirm delete
             const blogsAfterDelete = await helper.blogsInDB()
@@ -138,7 +186,7 @@ describe('When DB data is initialized', () => {
             
             // confirm total blogs are unchanged
             const response = await blogAPI.get('/api/blogs')
-            assert.strictEqual(response.body.length, totalBlogs)
+            assert.strictEqual(response.body.length, totalInitialBlogs)
         })
     })
     
