@@ -60,11 +60,13 @@ exports.addBlog = async (request, response, next) => {
 // UPDATE
 exports.updateBlog = async(request, response, next) => {
     try {
+        const id = request.params.id
         const { title, author, url, likes } = request.body
-        const updatedBlog = await Blog.findByIdAndUpdate(request.params.id,
-            {title, author, url, likes},
-            {new: true, runValidators: true, context: 'query'}
-        )
+        const options = { new: true, runValidators: true, context: 'query' }
+        const updatedBlog = await Blog
+            .findByIdAndUpdate(id, { title, author, url, likes }, options)
+            .populate('user', {username: 1, name: 1, id: 1})
+
         response.json(updatedBlog)
     } catch (error) {
         next(error)
@@ -74,14 +76,13 @@ exports.updateBlog = async(request, response, next) => {
 // DELETE
 exports.removeBlog = async (request, response, next) => {
     try {
-        const blogToDelete = await Blog.findById(request.params.id)
-        // const decodedToken = jwt.verify(request.token, process.env.SECRET)
-        // if(!decodedToken){
-        //     response.status(401).json({ error: 'Invalid Token. User Authentication failed.' })
-        // }
+        const id = request.params.id
+        const blogToDelete = await Blog.findById(id)
+
         const userIdFromToken = request.user.id
-        const userIdFromBlog = blogToDelete.user.id
+        const userIdFromBlog = blogToDelete.user._id.toString()
         if(userIdFromToken !== userIdFromBlog){
+            console.log(`Invalid request because ${userIdFromToken} != ${userIdFromBlog}` )
             response.status(401).json({ error: 'Invalid request. User not authorized.'})
         }
         else {
