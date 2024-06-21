@@ -8,32 +8,20 @@ const logger = require('./logger')
 const morgan = require('morgan')
 const requestLogger = morgan('dev')
 
-// ONLY for development purposes - POST method
+// ONLY for testing/development purposes - POST method
 /* 
 * morgan.token('body', (req, res) => JSON.stringify(req.body) );
 * app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 */
 
 
-// Token extraction - <auth-scheme> 'Bearer' for token
-/*
- * request Header => Authorization => <auth-scheme> <auth-parameters>
-*/
+// httpOnly cookie from request Header
 const tokenExtractor = (request, response, next) => {
-    const authHeader = request.get('authorization')
-    if(authHeader && authHeader.startsWith('Bearer ')){
-        request.token = authHeader.split(' ')[1]
-    }
+    request.token = request.cookies['auth_token']
     next()
 }
 
-// authenticate user token
-/** Only owner can POST/DELETE their blogs
-    * from middleware.tokenExtractor use request.token
-    * use jwt.verify to authenticate user
-    * if invalid, return 401 status and message
-    * if valid, get user from User collection   
-*/
+// retrieve and validate user with JWT
 const userExtractor = async (request, response, next) => {
     const decodedToken = jwt.verify(request.token, process.env.SECRET)
     if(!decodedToken){
