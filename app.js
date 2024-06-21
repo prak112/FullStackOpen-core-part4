@@ -4,6 +4,8 @@ const express = require('express')
 require('express-async-errors') // error handler for async/await
 const app = express()
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
 const middleware = require('./utils/middleware')
 app.use(middleware.tokenExtractor)
 const blogsRouter = require('./routes/blogsRouter')
