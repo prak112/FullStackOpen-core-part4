@@ -46,6 +46,7 @@ exports.addBlog = async (request, response, next) => {
                         })
         const addedBlog = await blog.save()
 
+        // update User model with id of newly added blog
         user.blogs = user.blogs.concat(addedBlog._id)
         await user.save()
         console.log(`Blog - '${addedBlog.title}' added by User - '${user.name}'`)
